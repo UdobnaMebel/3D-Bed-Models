@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Шкаф-кровати 3D</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -43,10 +44,13 @@
       margin-top: 10px;
       width: 100%;
       max-width: 400px;
-      height: 500px;
+      height: auto;
     }
-    #scene-link {
-      display: none;
+    model-viewer {
+      width: 100%;
+      height: 500px;
+      background: #eee;
+      border-radius: 12px;
     }
     #toggleBed {
       margin-top: 15px;
@@ -68,50 +72,60 @@
   </div>
 
   <div id="viewer-container">
-    <a id="scene-link" rel="ar" href="" target="_blank"></a>
+    <model-viewer id="modelViewer" src="" alt="3D модель" ar auto-rotate camera-controls></model-viewer>
   </div>
 
   <button id="toggleBed" onclick="toggleBedState()">Открыть кровать</button>
   <div id="errorMessage"></div>
 
   <script>
+    const modelMap = {
+      1: { closed: 'model1.glb', open: 'model1-2.glb' },
+      2: { closed: 'model2.glb', open: 'model2-2.glb' },
+      3: { closed: 'model3.glb', open: 'model3-2.glb' },
+      4: { closed: 'model4.glb', open: 'model4-2.glb' }
+    };
+
     let currentModel = null;
     let isOpen = false;
 
     function loadModel(num) {
       currentModel = num;
       isOpen = false;
-      const base = `model${num}.glb`;
-      showModel(base);
+      const modelViewer = document.getElementById('modelViewer');
+      const error = document.getElementById('errorMessage');
+      const toggleBtn = document.getElementById('toggleBed');
+
+      const path = modelMap[num]?.closed;
+      if (!path) return;
+
+      modelViewer.src = path;
+      toggleBtn.style.display = 'inline-block';
+      toggleBtn.textContent = 'Открыть кровать';
+      error.textContent = '';
+
+      modelViewer.addEventListener('error', () => {
+        error.textContent = 'Упс... Кажется произошла ошибка, попробуйте другую модель';
+        toggleBtn.style.display = 'none';
+      }, { once: true });
     }
 
     function toggleBedState() {
       if (!currentModel) return;
-      isOpen = !isOpen;
-      const model = isOpen ? `model${currentModel}-2.glb` : `model${currentModel}.glb`;
-      showModel(model);
-    }
-
-    function showModel(filename) {
-      const link = document.getElementById('scene-link');
-      const viewerContainer = document.getElementById('viewer-container');
+      const modelViewer = document.getElementById('modelViewer');
       const toggleBtn = document.getElementById('toggleBed');
       const error = document.getElementById('errorMessage');
 
-      link.href = `intent://arvr.google.com/scene-viewer/1.0?file=${filename}&mode=ar_preferred#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
-      link.click();
-
+      isOpen = !isOpen;
+      const path = isOpen ? modelMap[currentModel].open : modelMap[currentModel].closed;
+      modelViewer.src = path;
       toggleBtn.textContent = isOpen ? 'Закрыть кровать' : 'Открыть кровать';
-      toggleBtn.style.display = 'inline-block';
       error.textContent = '';
 
-      // Проверка загрузки файла через Image, т.к. GLB нельзя проверить напрямую
-      const test = new Image();
-      test.src = filename;
-      test.onerror = () => {
+      modelViewer.addEventListener('error', () => {
         error.textContent = 'Упс... Кажется произошла ошибка, попробуйте другую модель';
         toggleBtn.style.display = 'none';
-      };
+      }, { once: true });
     }
   </script>
 </body>
