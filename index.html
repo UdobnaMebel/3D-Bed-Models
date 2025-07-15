@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Шкаф-кровати 3D</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #333;
+    }
+    header {
+      margin-top: 20px;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+    #buttons {
+      margin: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
+      background-color: #333;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #555;
+    }
+    #viewer-container {
+      margin-top: 10px;
+      width: 100%;
+      max-width: 400px;
+      height: 500px;
+    }
+    #scene-link {
+      display: none;
+    }
+    #toggleBed {
+      margin-top: 15px;
+      display: none;
+    }
+    #errorMessage {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>Выберите модель шкаф-кровати</header>
+  <div id="buttons">
+    <button onclick="loadModel(1)">Модель 1</button>
+    <button onclick="loadModel(2)">Модель 2</button>
+    <button onclick="loadModel(3)">Модель 3</button>
+    <button onclick="loadModel(4)">Модель 4</button>
+  </div>
+
+  <div id="viewer-container">
+    <a id="scene-link" rel="ar" href="" target="_blank"></a>
+  </div>
+
+  <button id="toggleBed" onclick="toggleBedState()">Открыть кровать</button>
+  <div id="errorMessage"></div>
+
+  <script>
+    let currentModel = null;
+    let isOpen = false;
+
+    function loadModel(num) {
+      currentModel = num;
+      isOpen = false;
+      const base = `model${num}.glb`;
+      showModel(base);
+    }
+
+    function toggleBedState() {
+      if (!currentModel) return;
+      isOpen = !isOpen;
+      const model = isOpen ? `model${currentModel}-2.glb` : `model${currentModel}.glb`;
+      showModel(model);
+    }
+
+    function showModel(filename) {
+      const link = document.getElementById('scene-link');
+      const viewerContainer = document.getElementById('viewer-container');
+      const toggleBtn = document.getElementById('toggleBed');
+      const error = document.getElementById('errorMessage');
+
+      link.href = `intent://arvr.google.com/scene-viewer/1.0?file=${filename}&mode=ar_preferred#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
+      link.click();
+
+      toggleBtn.textContent = isOpen ? 'Закрыть кровать' : 'Открыть кровать';
+      toggleBtn.style.display = 'inline-block';
+      error.textContent = '';
+
+      // Проверка загрузки файла через Image, т.к. GLB нельзя проверить напрямую
+      const test = new Image();
+      test.src = filename;
+      test.onerror = () => {
+        error.textContent = 'Упс... Кажется произошла ошибка, попробуйте другую модель';
+        toggleBtn.style.display = 'none';
+      };
+    }
+  </script>
+</body>
+</html>
